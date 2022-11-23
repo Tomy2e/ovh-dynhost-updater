@@ -1,0 +1,53 @@
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+archives:
+  - format: binary
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+dockers:
+  - image_templates:
+      - "ghcr.io/tomy2e/{{ .ProjectName }}:v{{ .Version }}-amd64"
+    use: buildx
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - "--platform=linux/amd64"
+  - image_templates:
+      - "ghcr.io/tomy2e/{{ .ProjectName }}:v{{ .Version }}-arm64v8"
+    use: buildx
+    goarch: arm64
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+docker_manifests:
+  - name_template: ghcr.io/tomy2e/{{ .ProjectName }}:v{{ .Version }}
+    image_templates:
+      - ghcr.io/tomy2e/{{ .ProjectName }}:v{{ .Version }}-amd64
+      - ghcr.io/tomy2e/{{ .ProjectName }}:v{{ .Version }}-arm64v8
+  - name_template: ghcr.io/tomy2e/{{ .ProjectName }}:latest
+    image_templates:
+      - ghcr.io/tomy2e/{{ .ProjectName }}:v{{ .Version }}-amd64
+      - ghcr.io/tomy2e/{{ .ProjectName }}:v{{ .Version }}-arm64v8
+release:
+  footer: |
+    ## Docker image
+
+    ```bash
+    docker pull ghcr.io/tomy2e/{{ .ProjectName }}:v{{ .Version }}
+    ```
+
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
